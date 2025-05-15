@@ -66,14 +66,14 @@ This project provides a set of Python scripts to fetch energy production, consum
         # Sigen API Credentials (for auth_handler.py)
         SIGEN_USERNAME="your_actual_sigen_login_email@example.com"
         SIGEN_TRANSFORMED_PASSWORD="the_special_password_string_you_capture_below"
-        SIGEN_STATION_ID="your_sigen_station_id" # e.g., 2025050900207
+        SIGEN_STATION_ID="your_sigen_station_id"
 
         # Sigen API Config (for sigen_api_client.py, often loaded in main_scheduler.py)
-        SIGEN_BASE_URL="[https://api-eu.sigencloud.com](https://api-eu.sigencloud.com)"
+        SIGEN_BASE_URL="https://api-eu.sigencloud.com"
 
         # Weather API Config (for weather_api_client.py)
-        WEATHER_LATITUDE="your_latitude"    # e.g., 52.638074
-        WEATHER_LONGITUDE="your_longitude"  # e.g., -8.677346
+        WEATHER_LATITUDE="your_latitude" 
+        WEATHER_LONGITUDE="your_longitude"
         WEATHER_TIMEZONE="Europe/Dublin"    # For Open-Meteo API requests
 
         # InfluxDB Configuration (for influxdb_writer.py)
