@@ -11,10 +11,11 @@ load_dotenv()
 # --- Configuration - Read from environment variables ---
 SIGEN_USERNAME = os.getenv("SIGEN_USERNAME")
 OBSERVED_TRANSFORMED_PASSWORD_STRING_FROM_BROWSER = os.getenv("SIGEN_TRANSFORMED_PASSWORD")
+SIGEN_BASE_URL = os.getenv("SIGEN_BASE_URL")
 
 # --- Constants (can be here or also in .env if they might change per user) ---
-TOKEN_URL = "https://api-eu.sigencloud.com/auth/oauth/token"
-CLIENT_AUTH_BASE_64 = "c2lnZW46c2lnZW4=" # sigen:sigen
+TOKEN_URL = f"{SIGEN_BASE_URL}/auth/oauth/token"
+CLIENT_AUTH_BASE64 = "c2lnZW46c2lnZW4=" # sigen:sigen
 USER_AGENT = "PythonSigenClient/1.0" # For API requests
 TOKEN_FILE = "sigen_token.json"      # File to store the current live token
 
@@ -94,7 +95,7 @@ def refresh_sigen_token(existing_refresh_token):
         )
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": f"Basic {CLIENT_AUTH_BASE_64}",
+            "Authorization": f"Basic {CLIENT_AUTH_BASE64}",
             "User-Agent": USER_AGENT
         }
         print(f"AUTH_HANDLER: Attempting to refresh token: {existing_refresh_token[:10]}...")
