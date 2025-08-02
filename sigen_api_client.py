@@ -1,5 +1,27 @@
 import requests
 import json
+import logging
+
+debug_requests = False
+
+if debug_requests:
+    # Enable HTTP request debugging
+    try:
+        import http.client as http_client
+    except ImportError:
+        # Python 2
+        import httplib as http_client
+    http_client.HTTPConnection.debuglevel = 1
+
+    # You must initialize logging, otherwise you'll not see debug output.
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
+
+    print("SIGEN_API_CLIENT: HTTP request debugging enabled.")
+
 # datetime and pytz might be needed here if we were formatting dates for API calls,
 # but target_date_str and target_date_obj_local are prepared by the caller.
 # from datetime import datetime
@@ -9,8 +31,9 @@ import json
 # but paths are usually stable relative to a base URL.
 USER_AGENT = "PythonSigenClient/1.0" # Same as in auth_handler
 
-def _create_sigen_headers(active_token):
+def _create_sigen_headers(active_token, base_url):
     """Helper function to create standard Sigen API headers."""
+    referer = base_url.replace('api-','app-')
     if not active_token:
         raise ValueError("Active token is required to create Sigen API headers.")
     return {
@@ -18,10 +41,67 @@ def _create_sigen_headers(active_token):
         "Content-Type": "application/json; charset=utf-8",
         "lang": "en_US",
         "auth-client-id": "sigen", # From previous observations
-        "origin": "https://app-eu.sigencloud.com",
-        "referer": "https://app-eu.sigencloud.com/",
+        "origin": referer,
+        "referer": referer,
         "User-Agent": USER_AGENT
     }
+
+def get_sigen_operational_mode(active_token, base_url, station_id):
+    endpoint_path = f"/device/setting/operational/mode/{station_id}"
+    full_url = f"{base_url}{endpoint_path}"
+    headers = _create_sigen_headers(active_token, base_url)
+    print(f"SIGEN_API_CLIENT: Querying current Operational Mode: {full_url}")
+
+    try:
+        response = requests.get(full_url, headers=headers, timeout=15)
+        response.raise_for_status()
+        api_data = response.json()
+
+        if api_data.get("code") == 0 and api_data.get("msg") == "success":
+            print(f"SIGEN_API_CLIENT: Current operational mode: {api_data.get('data')}.")
+            return api_data.get("data")
+        else:
+            print(f"SIGEN_API_CLIENT ERROR (Query Op Mode): API Code: {api_data.get('code')}, Message: {api_data.get('msg')}")
+            return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"SIGEN_API_CLIENT HTTP error (Query Op Mode): {http_err}")
+        if 'response' in locals() and response is not None: print(f"Response text: {response.text}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"SIGEN_API_CLIENT Request error (Query Op Mode): {req_err}")
+    except json.JSONDecodeError:
+        print(f"SIGEN_API_CLIENT Failed to decode JSON (Query Op Mode). Status: {response.status_code if 'response' in locals() else 'N/A'}")
+        if 'response' in locals() and response is not None: print(f"Response text: {response.text}")
+    return None
+
+def set_sigen_operational_mode(active_token, base_url, station_id, operation_mode):
+    endpoint_path = "/device/setting/operational/mode"
+    payload = {"operationMode":int(operation_mode),"stationId":int(station_id)}
+    full_url = f"{base_url}{endpoint_path}"
+    headers = _create_sigen_headers(active_token, base_url)
+
+    print(f"SIGEN_API_CLIENT: Setting station operational mode {full_url} with data {payload}")
+    try:
+        response = requests.put(full_url, headers=headers, data=json.dumps(payload), timeout=15)
+        response.raise_for_status()
+        api_data = response.json()
+
+        if api_data.get("code") == 0 and api_data.get("msg") == "success":
+            print("SIGEN_API_CLIENT: Successfully set operational mode.")
+            return api_data
+        else:
+            print(f"SIGEN_API_CLIENT ERROR (OpMode): API Code: {api_data.get('code')}, Message: {api_data.get('msg')}")
+            return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"SIGEN_API_CLIENT HTTP error (OpMode): {http_err}")
+        if 'response' in locals() and response is not None: print(f"Response text: {response.text}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"SIGEN_API_CLIENT Request error (OpMode): {req_err}")
+    except json.JSONDecodeError:
+        print(f"SIGEN_API_CLIENT Failed to decode JSON (OpMode). Status: {response.status_code if 'response' in locals() else 'N/A'}")
+        if 'response' in locals() and response is not None: print(f"Response text: {response.text}")
+    return None
+
+
 
 def fetch_sigen_energy_flow(active_token, base_url, station_id):
     """Fetches real-time energy flow data from the Sigen API."""
@@ -32,7 +112,7 @@ def fetch_sigen_energy_flow(active_token, base_url, station_id):
     endpoint_path = "/device/sigen/station/energyflow"
     query_params_str = f"?id={station_id}&refreshFlag=true"
     full_url = f"{base_url}{endpoint_path}{query_params_str}"
-    headers = _create_sigen_headers(active_token)
+    headers = _create_sigen_headers(active_token, base_url)
 
     print(f"SIGEN_API_CLIENT: Querying Energy Flow: {full_url}")
     try:
@@ -73,7 +153,7 @@ def fetch_sigen_daily_consumption_stats(active_token, base_url, station_id, targ
         "stationId": station_id
     }
     full_url = f"{base_url}{endpoint_path}"
-    headers = _create_sigen_headers(active_token)
+    headers = _create_sigen_headers(active_token, base_url)
 
     print(f"SIGEN_API_CLIENT: Querying Daily Consumption Stats: {full_url} with params: {params}")
     try:
@@ -112,7 +192,7 @@ def fetch_sigen_sunrise_sunset(active_token, base_url, station_id, target_date_s
         "date": target_date_str_api_format
     }
     full_url = f"{base_url}{endpoint_path}"
-    headers = _create_sigen_headers(active_token)
+    headers = _create_sigen_headers(active_token, base_url)
 
     print(f"SIGEN_API_CLIENT: Querying Sunrise/Sunset: {full_url} with params: {params}")
     try:
@@ -144,7 +224,7 @@ def fetch_sigen_station_info(active_token, base_url):
 
     endpoint_path = "/device/owner/station/home" # Assuming no extra params needed beyond what's in URL
     full_url = f"{base_url}{endpoint_path}"
-    headers = _create_sigen_headers(active_token)
+    headers = _create_sigen_headers(active_token, base_url)
 
     print(f"SIGEN_API_CLIENT: Querying Station Info: {full_url}")
     try:
