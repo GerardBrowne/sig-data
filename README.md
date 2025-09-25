@@ -1,6 +1,6 @@
-# Sigen Solar Monitoring & Grafana Dashboard
+# Sigen Solar Monitoring System
 
-This project provides a set of Python scripts to fetch energy production, consumption, and status data from a Sigen solar inverter system via its web API, store this data in InfluxDB, and includes a Grafana dashboard JSON for visualization. It also includes functionality to fetch weather data from Open-Meteo for correlation.
+A comprehensive Kubernetes-native application for monitoring Sigen solar inverter systems, integrating weather data, storing metrics in InfluxDB, and providing rich Grafana visualizations.
 
 **Disclaimer:** This project interacts with an unofficial Sigen API by reverse-engineering web application calls. Sigen may change their API at any time without notice, which could break these scripts. Use at your own risk.
 

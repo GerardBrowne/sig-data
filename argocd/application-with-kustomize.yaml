@@ -12,7 +12,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/yourusername/sig-data.git  # Update this to your repo
+    repoURL: https://github.com/GerardBrowne/sig-data.git
     targetRevision: main
     path: argocd
     kustomize:

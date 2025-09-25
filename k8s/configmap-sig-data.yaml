@@ -10,6 +10,6 @@ data:
   WEATHER_LONGITUDE: "-8.677346"
   WEATHER_TIMEZONE: "Europe/Dublin"
   INFLUXDB_URL: "http://influxdb:8086"
-  INFLUXDB_ORG: "sigorg"
+  INFLUXDB_ORG: "SigenSolar"
   INFLUXDB_BUCKET: "energy_metrics"
   LOG_LEVEL: "INFO"
