@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sig-data
+  namespace: sig-data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sig-data
+  template:
+    metadata:
+      labels:
+        app: sig-data
+    spec:
+      containers:
+        - name: sig-data
+          image: sig-data:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SIGEN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sig-data-secrets
+                  key: SIGEN_USERNAME
+            - name: SIGEN_TRANSFORMED_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sig-data-secrets
+                  key: SIGEN_TRANSFORMED_PASSWORD
+            - name: SIGEN_STATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sig-data-secrets
+                  key: SIGEN_STATION_ID
+            - name: SIGEN_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: SIGEN_BASE_URL
+            - name: TIMEZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: TIMEZONE
+            - name: WEATHER_LATITUDE
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: WEATHER_LATITUDE
+            - name: WEATHER_LONGITUDE
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: WEATHER_LONGITUDE
+            - name: WEATHER_TIMEZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: WEATHER_TIMEZONE
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: LOG_LEVEL
+            - name: SIGEN_TOKEN_FILE
+              value: /data/sigen_token.json
+            - name: INFLUXDB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: INFLUXDB_URL
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sig-data-secrets
+                  key: INFLUXDB_TOKEN
+            - name: INFLUXDB_ORG
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: INFLUXDB_ORG
+            - name: INFLUXDB_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: INFLUXDB_BUCKET
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: sig-data-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sig-data-data
+  namespace: sig-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

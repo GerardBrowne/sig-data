@@ -1,0 +1,86 @@
+{{- if .Values.influxdb.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "sig-data.fullname" . }}-influxdb
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "sig-data.fullname" . }}-influxdb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sig-data.fullname" . }}-influxdb
+  template:
+    metadata:
+      labels:
+        app: {{ include "sig-data.fullname" . }}-influxdb
+    spec:
+      containers:
+        - name: influxdb
+          image: {{ .Values.influxdb.image }}
+          ports:
+            - containerPort: 8086
+          env:
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: setup
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: INFLUXDB_USERNAME
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: INFLUXDB_PASSWORD
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: {{ .Values.influxdb.org | quote }}
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: {{ .Values.influxdb.bucket | quote }}
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: INFLUXDB_TOKEN
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/influxdb2
+            - name: config
+              mountPath: /etc/influxdb2
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8086
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: {{ toYaml .Values.influxdb.persistence.accessModes | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.influxdb.persistence.size }}
+        {{- if .Values.influxdb.persistence.storageClassName }}
+        storageClassName: {{ .Values.influxdb.persistence.storageClassName }}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sig-data.fullname" . }}-influxdb
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ include "sig-data.fullname" . }}-influxdb
+  ports:
+    - name: http
+      port: {{ .Values.influxdb.service.port }}
+      targetPort: 8086
+  type: {{ .Values.influxdb.service.type }}
+{{- end }}

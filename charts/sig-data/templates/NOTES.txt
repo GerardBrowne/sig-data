@@ -1,0 +1,23 @@
+Thank you for installing sig-data.
+
+To run the full stack (app + InfluxDB + Grafana):
+- helm install my-sig ./charts/sig-data \
+  --set secrets.sigenUsername=me@example.com \
+  --set secrets.sigenTransformedPassword=... \
+  --set secrets.sigenStationId=... \
+  --set influxdb.token=changeme
+
+If you already have InfluxDB/Grafana:
+- helm install my-sig ./charts/sig-data \
+  --set influxdb.enabled=false \
+  --set grafana.enabled=false \
+  --set externalInfluxUrl=http://influxdb.default:8086 \
+  --set influxdb.org=yourOrg \
+  --set influxdb.bucket=yourBucket \
+  --set influxdb.token=...
+
+Port-forwarding:
+- kubectl port-forward svc/my-sig-sig-data-grafana 3000:3000
+- kubectl port-forward svc/my-sig-sig-data-influxdb 8086:8086
+
+The app writes its token to a PVC mounted at /data (configurable). Ensure you set SIGEN_* secrets.

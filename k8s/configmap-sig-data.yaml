@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sig-data-config
+  namespace: sig-data
+data:
+  SIGEN_BASE_URL: "https://api-eu.sigencloud.com"
+  TIMEZONE: "Europe/Dublin"
+  WEATHER_LATITUDE: "52.638074"
+  WEATHER_LONGITUDE: "-8.677346"
+  WEATHER_TIMEZONE: "Europe/Dublin"
+  INFLUXDB_URL: "http://influxdb:8086"
+  INFLUXDB_ORG: "sigorg"
+  INFLUXDB_BUCKET: "energy_metrics"
+  LOG_LEVEL: "INFO"

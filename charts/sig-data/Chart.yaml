@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sig-data
+description: Helm chart for Sigen data collector, optional InfluxDB and Grafana stack
+type: application
+version: 0.1.0
+appVersion: "latest"

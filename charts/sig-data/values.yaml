@@ -1,0 +1,58 @@
+image:
+  repository: sig-data
+  tag: latest
+  pullPolicy: IfNotPresent
+
+sigData:
+  replicaCount: 1
+  timezone: Europe/Dublin
+  weather:
+    latitude: "52.638074"
+    longitude: "-8.677346"
+    timezone: Europe/Dublin
+  sigenBaseUrl: https://api-eu.sigencloud.com
+  logLevel: INFO
+  tokenFilePath: /data/sigen_token.json
+  persistence:
+    enabled: true
+    accessModes: ["ReadWriteOnce"]
+    size: 1Gi
+    storageClassName: ""
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+influxdb:
+  enabled: true
+  image: influxdb:2.7
+  service:
+    type: ClusterIP
+    port: 8086
+  org: sigorg
+  bucket: energy_metrics
+  username: admin
+  password: changeme
+  token: devtoken
+  persistence:
+    accessModes: ["ReadWriteOnce"]
+    size: 10Gi
+    storageClassName: ""
+
+grafana:
+  enabled: true
+  image: grafana/grafana:10.4.9
+  service:
+    type: ClusterIP
+    port: 3000
+  adminUser: admin
+  adminPassword: admin
+  persistence:
+    accessModes: ["ReadWriteOnce"]
+    size: 5Gi
+    storageClassName: ""
+  # Optionally map dashboard JSONs as configmaps here in future
+
+# If you run against an external InfluxDB, set influxdb.enabled=false and configure this URL
+externalInfluxUrl: ""

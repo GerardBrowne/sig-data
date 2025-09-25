@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+.venv/
+venv/
+
+# Env & secrets
+.env
+sigen_token.json
+
+# Kubernetes secrets (never commit configured secrets!)
+k8s/secret-sig-data-configured.yaml
+k8s/*-configured.yaml
+
+# Logs
+*.log
+sigen_cron.log
+
+# macOS
+.DS_Store

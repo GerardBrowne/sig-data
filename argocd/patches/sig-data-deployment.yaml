@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sig-data
+  namespace: sig-data
+spec:
+  template:
+    spec:
+      containers:
+        - name: sig-data
+          # Update this image path as needed
+          # For kind: use "sig-data:latest" (after loading with kind load docker-image)
+          # For registry: use "your-registry/sig-data:latest"
+          image: sig-data:latest
+          # Add image pull policy for development
+          imagePullPolicy: IfNotPresent

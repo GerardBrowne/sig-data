@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    profiles: ["stack"]
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USERNAME:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD:-changeme}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG:-sigorg}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET:-energy_metrics}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:-devtoken}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+
+  grafana:
+    image: grafana/grafana:10.4.9
+    profiles: ["stack"]
+    container_name: grafana
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      # Pass InfluxDB env for datasource provisioning
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN:-devtoken}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-sigorg}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET:-energy_metrics}
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+  sig-data:
+    build: .
+    container_name: sig-data
+    environment:
+      SIGEN_USERNAME: ${SIGEN_USERNAME}
+      SIGEN_TRANSFORMED_PASSWORD: ${SIGEN_TRANSFORMED_PASSWORD}
+      SIGEN_STATION_ID: ${SIGEN_STATION_ID}
+      SIGEN_BASE_URL: ${SIGEN_BASE_URL:-https://api-eu.sigencloud.com}
+      TIMEZONE: ${TIMEZONE:-Europe/Dublin}
+      WEATHER_LATITUDE: ${WEATHER_LATITUDE}
+      WEATHER_LONGITUDE: ${WEATHER_LONGITUDE}
+      WEATHER_TIMEZONE: ${WEATHER_TIMEZONE:-Europe/Dublin}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SIGEN_TOKEN_FILE: /data/sigen_token.json
+      INFLUXDB_URL: ${INFLUXDB_URL:-http://influxdb:8086}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN:-devtoken}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-sigorg}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET:-energy_metrics}
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+
+volumes:
+  influxdb-data:
+  influxdb-config:
+  grafana-storage:

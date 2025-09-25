@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv
+.env
+*.log
+sigen_token.json
+.DS_Store
+.vscode
+.git
+.gitignore

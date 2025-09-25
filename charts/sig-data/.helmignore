@@ -1,0 +1,9 @@
+# Common Helm ignores
+.git/
+.gitignore
+.DS_Store
+*.swp
+*.bak
+.env
+__pycache__/
+.vscode/

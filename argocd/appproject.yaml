@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: sig-data-project
+  namespace: argocd
+  labels:
+    project: sig-data
+spec:
+  description: Sigen Solar Data Monitoring Project
+  sourceRepos:
+    - 'https://github.com/*'  # Allow any GitHub repo
+    - 'https://gitlab.com/*'  # Allow any GitLab repo
+  destinations:
+    - namespace: sig-data
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: ''
+      kind: PersistentVolume
+    - group: storage.k8s.io
+      kind: StorageClass
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: ServiceAccount
+    - group: ''
+      kind: PersistentVolumeClaim
+    - group: apps
+      kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: apps
+      kind: ReplicaSet
+    - group: extensions
+      kind: Ingress
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+  roles:
+    - name: sig-data-admin
+      description: Admin access to sig-data project
+      policies:
+        - p, proj:sig-data-project:sig-data-admin, applications, *, sig-data-project/*, allow
+        - p, proj:sig-data-project:sig-data-admin, repositories, *, *, allow
+      groups:
+        - sig-data:admin

@@ -1,0 +1,137 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sig-data.fullname" . }}-grafana-datasource
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+data:
+  datasource.yml: |
+    apiVersion: 1
+
+    datasources:
+      - name: InfluxDB
+        type: influxdb
+        access: proxy
+        url: http://{{ include "sig-data.fullname" . }}-influxdb:8086
+        isDefault: true
+        editable: true
+        jsonData:
+          version: Flux
+          organization: {{ .Values.influxdb.org }}
+          defaultBucket: {{ .Values.influxdb.bucket }}
+          httpMode: POST
+        secureJsonData:
+          token: ${INFLUXDB_TOKEN}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sig-data.fullname" . }}-grafana-dashboard-providers
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+data:
+  dashboard.yml: |
+    apiVersion: 1
+
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+          recursive: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sig-data.fullname" . }}-grafana
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "sig-data.fullname" . }}-grafana
+  template:
+    metadata:
+      labels:
+        app: {{ include "sig-data.fullname" . }}-grafana
+    spec:
+      containers:
+        - name: grafana
+          image: {{ .Values.grafana.image }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: GRAFANA_USER
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: GRAFANA_PASSWORD
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: INFLUXDB_TOKEN
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: grafana-datasource
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-dashboard-providers
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: grafana-datasource
+          configMap:
+            name: {{ include "sig-data.fullname" . }}-grafana-datasource
+        - name: grafana-dashboard-providers
+          configMap:
+            name: {{ include "sig-data.fullname" . }}-grafana-dashboard-providers
+        - name: grafana-dashboards
+          emptyDir: {}
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: {{ include "sig-data.fullname" . }}-grafana-storage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "sig-data.fullname" . }}-grafana-storage
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+spec:
+  accessModes: {{ toYaml .Values.grafana.persistence.accessModes | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.grafana.persistence.size }}
+  {{- if .Values.grafana.persistence.storageClassName }}
+  storageClassName: {{ .Values.grafana.persistence.storageClassName }}
+  {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sig-data.fullname" . }}-grafana
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ include "sig-data.fullname" . }}-grafana
+  ports:
+    - name: http
+      port: {{ .Values.grafana.service.port }}
+      targetPort: 3000
+  type: {{ .Values.grafana.service.type }}
+{{- end }}

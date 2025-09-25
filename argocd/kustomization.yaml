@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Core infrastructure
+  - ../k8s/namespace.yaml
+  - ../k8s/configmap-sig-data.yaml
+  - ../k8s/secret-sig-data.yaml
+
+  # Database and monitoring
+  - ../k8s/influxdb.yaml
+  - ../k8s/grafana-provisioning-configmaps.yaml
+  - ../k8s/grafana.yaml
+
+  # Application
+  - ../k8s/sig-data.yaml
+
+# Patch the sig-data deployment with the correct image
+patchesStrategicMerge:
+  - patches/sig-data-deployment.yaml
+
+# Common labels
+commonLabels:
+  app.kubernetes.io/name: sig-data
+  app.kubernetes.io/part-of: solar-monitoring
+  app.kubernetes.io/managed-by: argocd
+
+# Common annotations
+commonAnnotations:
+  argocd.argoproj.io/managed: "true"

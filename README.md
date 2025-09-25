@@ -14,6 +14,7 @@ This project provides a set of Python scripts to fetch energy production, consum
 * Stores data in InfluxDB v2.x.
 * Includes a pre-configured Grafana dashboard JSON for visualization.
 * Scheduled data collection using `cron`.
+* Centralized structured logging via `logger.py` (configure with LOG_LEVEL/LOG_FILE env vars).
 
 ## Prerequisites
 
@@ -37,7 +38,7 @@ This project provides a set of Python scripts to fetch energy production, consum
     ```bash
     python3 -m venv venv
     source venv/bin/activate  # On macOS/Linux
-    # .\venv\Scripts\activate # On Windows
+    # .\\venv\\Scripts\\activate # On Windows
     pip install -r requirements.txt
     ```
     *(You will need to create the `requirements.txt` file by running `pip freeze > requirements.txt` in your activated virtual environment after installing all necessary packages like `requests`, `influxdb-client`, `python-dotenv`, `pytz`, `python-dateutil`)*
@@ -130,6 +131,19 @@ This project provides a set of Python scripts to fetch energy production, consum
             ```
             *(Replace `/full/path/to/your/...` with the actual absolute paths).*
 
+## Quickstart (macOS)
+
+- python3 -m venv venv && source venv/bin/activate
+- pip install -r requirements.txt
+- cp .env.example .env && edit .env
+- python3 auth_handler.py
+- python3 main_scheduler.py
+
+## Housekeeping
+
+- A `.gitignore` is included to avoid committing secrets (e.g., `.env`, `sigen_token.json`) and logs.
+- `sigen_token.json` permissions are set to 600 on write when possible.
+
 ## Grafana Dashboard
 
 1.  **Add InfluxDB Data Source in Grafana:**
@@ -149,6 +163,114 @@ This project provides a set of Python scripts to fetch energy production, consum
     * Upload the `YourDashboardName.json` file provided in this repository, or paste the JSON content directly.
     * Select your InfluxDB data source when prompted.
     * Click "Import."
+
+## Docker
+
+Build image:
+
+```bash
+docker build -t sig-data:latest .
+```
+
+Run one-off to fetch/refresh token (mount a volume to persist token file):
+
+```bash
+docker run --rm \
+  -e SIGEN_USERNAME="..." \
+  -e SIGEN_TRANSFORMED_PASSWORD="..." \
+  -e SIGEN_STATION_ID="..." \
+  -e INFLUXDB_URL="http://influxdb:8086" \
+  -e INFLUXDB_TOKEN="..." \
+  -e INFLUXDB_ORG="..." \
+  -e INFLUXDB_BUCKET="..." \
+  -e SIGEN_BASE_URL="https://api-eu.sigencloud.com" \
+  -e TIMEZONE="Europe/Dublin" \
+  -e WEATHER_LATITUDE="..." -e WEATHER_LONGITUDE="..." -e WEATHER_TIMEZONE="Europe/Dublin" \
+  -e LOG_LEVEL=INFO \
+  -e SIGEN_TOKEN_FILE=/data/sigen_token.json \
+  -v $(pwd)/data:/data \
+  sig-data:latest \
+  python auth_handler.py
+```
+
+Run scheduler (uses same mounted volume for token/logs):
+
+```bash
+docker run -d --name sig-data \
+  -e SIGEN_USERNAME="..." \
+  -e SIGEN_TRANSFORMED_PASSWORD="..." \
+  -e SIGEN_STATION_ID="..." \
+  -e INFLUXDB_URL="http://influxdb:8086" \
+  -e INFLUXDB_TOKEN="..." \
+  -e INFLUXDB_ORG="..." \
+  -e INFLUXDB_BUCKET="..." \
+  -e SIGEN_BASE_URL="https://api-eu.sigencloud.com" \
+  -e TIMEZONE="Europe/Dublin" \
+  -e WEATHER_LATITUDE="..." -e WEATHER_LONGITUDE="..." -e WEATHER_TIMEZONE="Europe/Dublin" \
+  -e LOG_LEVEL=INFO \
+  -e SIGEN_TOKEN_FILE=/data/sigen_token.json \
+  -v $(pwd)/data:/data \
+  sig-data:latest
+```
+
+Run with your existing InfluxDB/Grafana (app only):
+
+```bash
+docker compose up -d sig-data
+```
+
+Run full stack with provisioning (InfluxDB + Grafana + app):
+
+```bash
+docker compose --profile stack up -d
+```
+
+- Place your existing dashboard JSON files in `grafana/dashboards/` before starting; they will be auto-imported.
+- Grafana admin: user `${GRAFANA_USER:-admin}`, password `${GRAFANA_PASSWORD:-admin}` at http://localhost:3000
+- InfluxDB UI: http://localhost:8086 (init creds from compose env vars)
+
+## Kubernetes
+
+1) Build and make the image available to your cluster (examples):
+- Local kind/minikube: docker build -t sig-data:latest . && kind load docker-image sig-data:latest
+- Remote cluster: docker build -t <registry>/sig-data:latest . && docker push <registry>/sig-data:latest (then set image in k8s/sig-data.yaml)
+
+2) Apply manifests (edit secrets first):
+- kubectl apply -f k8s/namespace.yaml
+- Edit k8s/secret-sig-data.yaml and fill SIGEN_* and passwords
+- kubectl apply -f k8s/secret-sig-data.yaml
+- kubectl apply -f k8s/configmap-sig-data.yaml
+- kubectl apply -f k8s/influxdb.yaml
+- kubectl apply -f k8s/grafana-provisioning-configmaps.yaml
+- kubectl apply -f k8s/grafana.yaml
+- kubectl apply -f k8s/sig-data.yaml
+
+3) Access UIs (port-forward):
+- kubectl -n sig-data port-forward svc/grafana 3000:3000
+- kubectl -n sig-data port-forward svc/influxdb 8086:8086
+
+Notes:
+- The app writes token/logs to a PVC mounted at /data.
+- Grafana auto-provisions an InfluxDB datasource; drop your dashboard JSONs into grafana/dashboards and import via UI, or create a ConfigMap to mount them.
+
+## Helm
+
+Package is in `charts/sig-data`.
+
+Examples:
+- Full stack:
+  helm install my-sig ./charts/sig-data \
+    --set secrets.sigenUsername=me@example.com \
+    --set secrets.sigenTransformedPassword=... \
+    --set secrets.sigenStationId=... \
+    --set influxdb.token=changeme
+
+- App only (use existing InfluxDB/Grafana):
+  helm install my-sig ./charts/sig-data \
+    --set influxdb.enabled=false \
+    --set grafana.enabled=false \
+    --set externalInfluxUrl=http://influxdb.default:8086 \
+    --set influxdb.org=yourOrg --set influxdb.bucket=yourBucket --set influxdb.token=...
 
 ## Important Notes
 

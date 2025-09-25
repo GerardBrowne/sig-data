@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sig-data.fullname" . }}
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.sigData.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "sig-data.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "sig-data.fullname" . }}
+        {{- include "sig-data.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: sig-data
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: SIGEN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: SIGEN_USERNAME
+            - name: SIGEN_TRANSFORMED_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: SIGEN_TRANSFORMED_PASSWORD
+            - name: SIGEN_STATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: SIGEN_STATION_ID
+            - name: SIGEN_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: SIGEN_BASE_URL
+            - name: TIMEZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: TIMEZONE
+            - name: WEATHER_LATITUDE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: WEATHER_LATITUDE
+            - name: WEATHER_LONGITUDE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: WEATHER_LONGITUDE
+            - name: WEATHER_TIMEZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: WEATHER_TIMEZONE
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: LOG_LEVEL
+            - name: SIGEN_TOKEN_FILE
+              value: {{ .Values.sigData.tokenFilePath | quote }}
+            - name: INFLUXDB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: INFLUXDB_URL
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-secrets
+                  key: INFLUXDB_TOKEN
+            - name: INFLUXDB_ORG
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: INFLUXDB_ORG
+            - name: INFLUXDB_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sig-data.fullname" . }}-config
+                  key: INFLUXDB_BUCKET
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            {{- toYaml .Values.sigData.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "sig-data.fullname" . }}-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "sig-data.fullname" . }}-data
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+spec:
+  accessModes: {{ toYaml .Values.sigData.persistence.accessModes | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.sigData.persistence.size }}
+  {{- if .Values.sigData.persistence.storageClassName }}
+  storageClassName: {{ .Values.sigData.persistence.storageClassName }}
+  {{- end }}

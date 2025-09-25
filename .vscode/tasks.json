@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run: Scheduler",
+      "type": "shell",
+      "command": "python3",
+      "args": ["main_scheduler.py"],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run: Auth (get token)",
+      "type": "shell",
+      "command": "python3",
+      "args": ["auth_handler.py"],
+      "group": "none",
+      "problemMatcher": []
+    },
+    {
+      "label": "Format: black",
+      "type": "shell",
+      "command": "python3",
+      "args": ["-m", "black", "."],
+      "group": "none",
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint: ruff",
+      "type": "shell",
+      "command": "python3",
+      "args": ["-m", "ruff", "."],
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

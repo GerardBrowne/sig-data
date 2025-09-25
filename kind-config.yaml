@@ -1,0 +1,20 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: sig-data
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  # Grafana (using different port since you have local Grafana on 3000)
+  - containerPort: 30001
+    hostPort: 3001
+    protocol: TCP
+  # InfluxDB (using different port since you have local InfluxDB on 8086)
+  - containerPort: 30087
+    hostPort: 8087
+    protocol: TCP

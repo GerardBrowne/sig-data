@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sig-data.fullname" . }}-config
+  labels:
+    {{- include "sig-data.labels" . | nindent 4 }}
+data:
+  SIGEN_BASE_URL: "{{ .Values.sigData.sigenBaseUrl }}"
+  TIMEZONE: "{{ .Values.sigData.timezone }}"
+  WEATHER_LATITUDE: "{{ .Values.sigData.weather.latitude }}"
+  WEATHER_LONGITUDE: "{{ .Values.sigData.weather.longitude }}"
+  WEATHER_TIMEZONE: "{{ .Values.sigData.weather.timezone }}"
+  INFLUXDB_URL: "{{ ternary (printf "http://%s-influxdb:8086" (include "sig-data.fullname" .)) .Values.externalInfluxUrl .Values.influxdb.enabled }}"
+  INFLUXDB_ORG: "{{ .Values.influxdb.org }}"
+  INFLUXDB_BUCKET: "{{ .Values.influxdb.bucket }}"
+  LOG_LEVEL: "{{ .Values.sigData.logLevel }}"
