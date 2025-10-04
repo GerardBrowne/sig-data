@@ -14,7 +14,7 @@ OBSERVED_TRANSFORMED_PASSWORD_STRING_FROM_BROWSER = os.getenv("SIGEN_TRANSFORMED
 
 # --- Constants (can be here or also in .env if they might change per user) ---
 TOKEN_URL = "https://api-eu.sigencloud.com/auth/oauth/token"
-CLIENT_AUTH_BASE_64 = "c2lnZW46c2lnZW4=" # sigen:sigen
+CLIENT_AUTH_BASE64 = "c2lnZW46c2lnZW4=" # sigen:sigen
 USER_AGENT = "PythonSigenClient/1.0" # For API requests
 TOKEN_FILE = "sigen_token.json"      # File to store the current live token
 
