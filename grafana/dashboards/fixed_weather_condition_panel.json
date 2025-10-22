@@ -1,0 +1,181 @@
+{
+  "datasource": {
+    "type": "influxdb",
+    "uid": "InfluxDB"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "thresholds"
+      },
+      "decimals": 0,
+      "mappings": [
+        {
+          "options": {
+            "0": {
+              "text": "☀️ Clear Sky"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "1": {
+              "text": "🌤️ Mainly Clear"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "2": {
+              "text": "⛅ Partly Cloudy"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "3": {
+              "text": "☁️ Overcast"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "45": {
+              "text": "🌫️ Fog"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "48": {
+              "text": "🌫️ Rime Fog"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "51": {
+              "text": "🌦️ Light Drizzle"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "53": {
+              "text": "🌧️ Moderate Drizzle"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "55": {
+              "text": "🌧️ Dense Drizzle"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "61": {
+              "text": "🌧️ Slight Rain"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "63": {
+              "text": "🌧️ Moderate Rain"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "65": {
+              "text": "🌧️ Heavy Rain"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "80": {
+              "text": "🌦️ Rain Showers"
+            }
+          },
+          "type": "value"
+        },
+        {
+          "options": {
+            "95": {
+              "text": "⛈️ Thunderstorm"
+            }
+          },
+          "type": "value"
+        }
+      ],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "yellow",
+            "value": null
+          },
+          {
+            "color": "blue",
+            "value": 45
+          },
+          {
+            "color": "green",
+            "value": 61
+          }
+        ]
+      },
+      "unit": "none"
+    },
+    "overrides": []
+  },
+  "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 10
+  },
+  "id": 21,
+  "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+      "calcs": [
+        "lastNotNull"
+      ],
+      "fields": "",
+      "values": false
+    },
+    "textMode": "name"
+  },
+  "pluginVersion": "12.0.0",
+  "targets": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "InfluxDB"
+      },
+      "query": "from(bucket: \"energy_metrics\")\n  |> range(start: -2h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_current\")\n  |> filter(fn: (r) => r[\"_field\"] == \"weather_code\")\n  |> last()\n  |> yield(name: \"Weather\")",
+      "refId": "A"
+    }
+  ],
+  "title": "Weather",
+  "type": "stat"
+}

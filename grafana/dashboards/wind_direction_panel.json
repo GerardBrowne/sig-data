@@ -1,0 +1,153 @@
+{
+  "datasource": {
+    "type": "influxdb",
+    "uid": "InfluxDB"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "thresholds"
+      },
+      "decimals": 0,
+      "mappings": [
+        {
+          "options": {
+            "from": 0,
+            "result": {
+              "text": "N ⬆️"
+            },
+            "to": 22.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 22.5,
+            "result": {
+              "text": "NE ↗️"
+            },
+            "to": 67.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 67.5,
+            "result": {
+              "text": "E ➡️"
+            },
+            "to": 112.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 112.5,
+            "result": {
+              "text": "SE ↘️"
+            },
+            "to": 157.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 157.5,
+            "result": {
+              "text": "S ⬇️"
+            },
+            "to": 202.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 202.5,
+            "result": {
+              "text": "SW ↙️"
+            },
+            "to": 247.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 247.5,
+            "result": {
+              "text": "W ⬅️"
+            },
+            "to": 292.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 292.5,
+            "result": {
+              "text": "NW ↖️"
+            },
+            "to": 337.5
+          },
+          "type": "range"
+        },
+        {
+          "options": {
+            "from": 337.5,
+            "result": {
+              "text": "N ⬆️"
+            },
+            "to": 360
+          },
+          "type": "range"
+        }
+      ],
+      "max": 360,
+      "min": 0,
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "blue",
+            "value": null
+          }
+        ]
+      },
+      "unit": "degree"
+    },
+    "overrides": []
+  },
+  "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 10
+  },
+  "id": 26,
+  "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+      "calcs": [
+        "lastNotNull"
+      ],
+      "fields": "",
+      "values": false
+    },
+    "textMode": "name"
+  },
+  "pluginVersion": "12.0.0",
+  "targets": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "InfluxDB"
+      },
+      "query": "from(bucket: \"energy_metrics\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_current\")\n  |> filter(fn: (r) => r[\"_field\"] == \"wind_direction_10m\")\n  |> last()\n  |> yield(name: \"Wind Direction\")",
+      "refId": "A"
+    }
+  ],
+  "title": "Wind Direction",
+  "type": "stat"
+}

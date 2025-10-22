@@ -1,0 +1,673 @@
+[
+  {
+    "datasource": {
+      "type": "influxdb",
+      "uid": "InfluxDB"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "color": {
+          "mode": "thresholds"
+        },
+        "decimals": 1,
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "blue",
+              "value": -10
+            },
+            {
+              "color": "green",
+              "value": 0
+            },
+            {
+              "color": "yellow",
+              "value": 15
+            },
+            {
+              "color": "orange",
+              "value": 25
+            },
+            {
+              "color": "red",
+              "value": 30
+            }
+          ]
+        },
+        "unit": "celsius"
+      },
+      "overrides": []
+    },
+    "gridPos": {
+      "h": 6,
+      "w": 4,
+      "x": 0,
+      "y": 42
+    },
+    "id": 20,
+    "options": {
+      "colorMode": "background",
+      "graphMode": "none",
+      "justifyMode": "center",
+      "orientation": "auto",
+      "reduceOptions": {
+        "calcs": [
+          "lastNotNull"
+        ],
+        "fields": "",
+        "values": false
+      },
+      "textMode": "auto"
+    },
+    "pluginVersion": "12.0.0",
+    "targets": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_current\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature\")\n  |> last()\n  |> yield(name: \"Current Temperature\")",
+        "refId": "A"
+      }
+    ],
+    "title": "Current Temperature",
+    "type": "stat"
+  },
+  {
+    "datasource": {
+      "type": "influxdb",
+      "uid": "InfluxDB"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "color": {
+          "mode": "thresholds"
+        },
+        "decimals": 0,
+        "mappings": [
+          {
+            "options": {
+              "0": {
+                "text": "☀️ Clear"
+              },
+              "1": {
+                "text": "🌤️ Mainly Clear"
+              },
+              "2": {
+                "text": "⛅ Partly Cloudy"
+              },
+              "3": {
+                "text": "☁️ Overcast"
+              },
+              "45": {
+                "text": "🌫️ Fog"
+              },
+              "48": {
+                "text": "🌫️ Rime Fog"
+              },
+              "51": {
+                "text": "🌦️ Light Drizzle"
+              },
+              "53": {
+                "text": "🌧️ Moderate Drizzle"
+              },
+              "55": {
+                "text": "🌧️ Dense Drizzle"
+              },
+              "61": {
+                "text": "🌧️ Slight Rain"
+              },
+              "63": {
+                "text": "🌧️ Moderate Rain"
+              },
+              "65": {
+                "text": "🌧️ Heavy Rain"
+              },
+              "80": {
+                "text": "🌦️ Rain Showers"
+              },
+              "95": {
+                "text": "⛈️ Thunderstorm"
+              }
+            },
+            "type": "value"
+          }
+        ],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "yellow",
+              "value": null
+            },
+            {
+              "color": "blue",
+              "value": 45
+            },
+            {
+              "color": "green",
+              "value": 61
+            }
+          ]
+        },
+        "unit": "none"
+      },
+      "overrides": []
+    },
+    "gridPos": {
+      "h": 6,
+      "w": 4,
+      "x": 4,
+      "y": 42
+    },
+    "id": 21,
+    "options": {
+      "colorMode": "background",
+      "graphMode": "none",
+      "justifyMode": "center",
+      "orientation": "auto",
+      "reduceOptions": {
+        "calcs": [
+          "lastNotNull"
+        ],
+        "fields": "",
+        "values": false
+      },
+      "textMode": "name"
+    },
+    "pluginVersion": "12.0.0",
+    "targets": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_current\")\n  |> filter(fn: (r) => r[\"_field\"] == \"weather_code\")\n  |> last()\n  |> yield(name: \"Weather Condition\")",
+        "refId": "A"
+      }
+    ],
+    "title": "Weather Condition",
+    "type": "stat"
+  },
+  {
+    "datasource": {
+      "type": "influxdb",
+      "uid": "InfluxDB"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "color": {
+          "mode": "thresholds"
+        },
+        "decimals": 0,
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "red",
+              "value": null
+            },
+            {
+              "color": "yellow",
+              "value": 10
+            },
+            {
+              "color": "green",
+              "value": 200
+            },
+            {
+              "color": "blue",
+              "value": 600
+            }
+          ]
+        },
+        "unit": "W/m²"
+      },
+      "overrides": []
+    },
+    "gridPos": {
+      "h": 6,
+      "w": 4,
+      "x": 8,
+      "y": 42
+    },
+    "id": 22,
+    "options": {
+      "colorMode": "background",
+      "graphMode": "area",
+      "justifyMode": "center",
+      "orientation": "auto",
+      "reduceOptions": {
+        "calcs": [
+          "lastNotNull"
+        ],
+        "fields": "",
+        "values": false
+      },
+      "textMode": "auto"
+    },
+    "pluginVersion": "12.0.0",
+    "targets": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_forecast_hourly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"shortwave_radiation\")\n  |> last()\n  |> yield(name: \"Solar Irradiance\")",
+        "refId": "A"
+      }
+    ],
+    "title": "Solar Irradiance",
+    "type": "stat"
+  },
+  {
+    "datasource": {
+      "type": "influxdb",
+      "uid": "InfluxDB"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "color": {
+          "mode": "palette-classic"
+        },
+        "custom": {
+          "axisBorderShow": false,
+          "axisCenteredZero": false,
+          "axisColorMode": "text",
+          "axisLabel": "",
+          "axisPlacement": "auto",
+          "barAlignment": 0,
+          "drawStyle": "line",
+          "fillOpacity": 20,
+          "gradientMode": "none",
+          "hideFrom": {
+            "legend": false,
+            "tooltip": false,
+            "viz": false
+          },
+          "insertNulls": false,
+          "lineInterpolation": "smooth",
+          "lineWidth": 2,
+          "pointSize": 3,
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "never",
+          "spanNulls": false,
+          "stacking": {
+            "group": "A",
+            "mode": "none"
+          },
+          "thresholdsStyle": {
+            "mode": "off"
+          }
+        },
+        "decimals": 1,
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "green",
+              "value": null
+            }
+          ]
+        },
+        "unit": "celsius"
+      },
+      "overrides": [
+        {
+          "matcher": {
+            "id": "byName",
+            "options": "temperature_2m"
+          },
+          "properties": [
+            {
+              "id": "color",
+              "value": {
+                "fixedColor": "orange",
+                "mode": "fixed"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "gridPos": {
+      "h": 8,
+      "w": 12,
+      "x": 12,
+      "y": 42
+    },
+    "id": 23,
+    "options": {
+      "legend": {
+        "calcs": [],
+        "displayMode": "list",
+        "placement": "bottom",
+        "showLegend": true
+      },
+      "tooltip": {
+        "mode": "single",
+        "sort": "none"
+      }
+    },
+    "pluginVersion": "12.0.0",
+    "targets": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_forecast_hourly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"temperature_2m\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> yield(name: \"Temperature Forecast\")",
+        "refId": "A"
+      }
+    ],
+    "title": "Temperature Forecast",
+    "type": "timeseries"
+  },
+  {
+    "datasource": {
+      "type": "influxdb",
+      "uid": "InfluxDB"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "color": {
+          "mode": "palette-classic"
+        },
+        "custom": {
+          "axisBorderShow": false,
+          "axisCenteredZero": false,
+          "axisColorMode": "text",
+          "axisLabel": "",
+          "axisPlacement": "auto",
+          "barAlignment": 0,
+          "drawStyle": "line",
+          "fillOpacity": 30,
+          "gradientMode": "opacity",
+          "hideFrom": {
+            "legend": false,
+            "tooltip": false,
+            "viz": false
+          },
+          "insertNulls": false,
+          "lineInterpolation": "smooth",
+          "lineWidth": 2,
+          "pointSize": 3,
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "never",
+          "spanNulls": false,
+          "stacking": {
+            "group": "A",
+            "mode": "none"
+          },
+          "thresholdsStyle": {
+            "mode": "off"
+          }
+        },
+        "decimals": 0,
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "green",
+              "value": null
+            }
+          ]
+        },
+        "unit": "W/m²"
+      },
+      "overrides": [
+        {
+          "matcher": {
+            "id": "byName",
+            "options": "shortwave_radiation"
+          },
+          "properties": [
+            {
+              "id": "color",
+              "value": {
+                "fixedColor": "yellow",
+                "mode": "fixed"
+              }
+            }
+          ]
+        },
+        {
+          "matcher": {
+            "id": "byName",
+            "options": "direct_radiation"
+          },
+          "properties": [
+            {
+              "id": "color",
+              "value": {
+                "fixedColor": "orange",
+                "mode": "fixed"
+              }
+            }
+          ]
+        },
+        {
+          "matcher": {
+            "id": "byName",
+            "options": "diffuse_radiation"
+          },
+          "properties": [
+            {
+              "id": "color",
+              "value": {
+                "fixedColor": "blue",
+                "mode": "fixed"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "gridPos": {
+      "h": 8,
+      "w": 24,
+      "x": 0,
+      "y": 50
+    },
+    "id": 24,
+    "options": {
+      "legend": {
+        "calcs": [],
+        "displayMode": "table",
+        "placement": "right",
+        "showLegend": true
+      },
+      "tooltip": {
+        "mode": "multi",
+        "sort": "desc"
+      }
+    },
+    "pluginVersion": "12.0.0",
+    "targets": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_forecast_hourly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"shortwave_radiation\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> yield(name: \"Total Solar Irradiance\")",
+        "refId": "A"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "hide": false,
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_forecast_hourly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"direct_radiation\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> yield(name: \"Direct Solar Radiation\")",
+        "refId": "B"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "hide": false,
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_forecast_hourly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"diffuse_radiation\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> yield(name: \"Diffuse Solar Radiation\")",
+        "refId": "C"
+      }
+    ],
+    "title": "Solar Radiation Forecast (Key for PV Predictions)",
+    "type": "timeseries"
+  },
+  {
+    "datasource": {
+      "type": "influxdb",
+      "uid": "InfluxDB"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "color": {
+          "mode": "thresholds"
+        },
+        "decimals": 1,
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "green",
+              "value": null
+            },
+            {
+              "color": "yellow",
+              "value": 5
+            },
+            {
+              "color": "orange",
+              "value": 15
+            },
+            {
+              "color": "red",
+              "value": 25
+            }
+          ]
+        },
+        "unit": "velocitykmh"
+      },
+      "overrides": []
+    },
+    "gridPos": {
+      "h": 6,
+      "w": 4,
+      "x": 0,
+      "y": 48
+    },
+    "id": 25,
+    "options": {
+      "colorMode": "background",
+      "graphMode": "area",
+      "justifyMode": "center",
+      "orientation": "auto",
+      "reduceOptions": {
+        "calcs": [
+          "lastNotNull"
+        ],
+        "fields": "",
+        "values": false
+      },
+      "textMode": "auto"
+    },
+    "pluginVersion": "12.0.0",
+    "targets": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_current\")\n  |> filter(fn: (r) => r[\"_field\"] == \"wind_speed_10m\")\n  |> last()\n  |> yield(name: \"Wind Speed\")",
+        "refId": "A"
+      }
+    ],
+    "title": "Wind Speed",
+    "type": "stat"
+  },
+  {
+    "datasource": {
+      "type": "influxdb",
+      "uid": "InfluxDB"
+    },
+    "fieldConfig": {
+      "defaults": {
+        "color": {
+          "mode": "thresholds"
+        },
+        "decimals": 0,
+        "mappings": [],
+        "max": 100,
+        "min": 0,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "red",
+              "value": null
+            },
+            {
+              "color": "yellow",
+              "value": 30
+            },
+            {
+              "color": "green",
+              "value": 60
+            },
+            {
+              "color": "blue",
+              "value": 80
+            }
+          ]
+        },
+        "unit": "percent"
+      },
+      "overrides": []
+    },
+    "gridPos": {
+      "h": 6,
+      "w": 4,
+      "x": 4,
+      "y": 48
+    },
+    "id": 26,
+    "options": {
+      "minVizHeight": 75,
+      "minVizWidth": 75,
+      "orientation": "auto",
+      "reduceOptions": {
+        "calcs": [
+          "lastNotNull"
+        ],
+        "fields": "",
+        "values": false
+      },
+      "showThresholdLabels": false,
+      "showThresholdMarkers": true,
+      "sizing": "auto"
+    },
+    "pluginVersion": "12.0.0",
+    "targets": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "query": "from(bucket: \"energy_metrics\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"weather_forecast_hourly\")\n  |> filter(fn: (r) => r[\"_field\"] == \"cloud_cover\")\n  |> last()\n  |> yield(name: \"Cloud Cover\")",
+        "refId": "A"
+      }
+    ],
+    "title": "Cloud Cover",
+    "type": "gauge"
+  }
+]

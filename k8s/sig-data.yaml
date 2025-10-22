@@ -85,6 +85,11 @@ spec:
                 configMapKeyRef:
                   name: sig-data-config
                   key: INFLUXDB_BUCKET
+            - name: SLEEP_INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: sig-data-config
+                  key: SLEEP_INTERVAL
           volumeMounts:
             - name: data
               mountPath: /data

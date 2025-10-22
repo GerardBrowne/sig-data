@@ -50,8 +50,13 @@ def get_sigen_bearer_token():
         }
         logger.info(f"Attempting initial token acquisition from: {TOKEN_URL}")
         response = requests.post(TOKEN_URL, headers=headers, data=payload_data, timeout=15)
-        response_json = response.json()
         logger.debug(f"Initial Auth - Response Status Code: {response.status_code}")
+
+        if not response.text.strip():
+            logger.error("Empty response from Sigen auth API")
+            return None
+
+        response_json = response.json()
 
         if response.status_code == 200 and response_json.get("code") == 0:
             token_data = response_json.get("data")
@@ -99,8 +104,13 @@ def refresh_sigen_token(existing_refresh_token):
         }
         logger.info("Attempting to refresh token...")
         response = requests.post(TOKEN_URL, headers=headers, data=payload_data, timeout=15)
-        response_json = response.json()
         logger.debug(f"Refresh - Response Status Code: {response.status_code}")
+
+        if not response.text.strip():
+            logger.error("Empty response from Sigen refresh API")
+            return None
+
+        response_json = response.json()
 
         if response.status_code == 200 and response_json.get("code") == 0:
             token_data = response_json.get("data")

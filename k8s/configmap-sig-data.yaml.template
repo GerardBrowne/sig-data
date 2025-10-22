@@ -6,10 +6,11 @@ metadata:
 data:
   SIGEN_BASE_URL: "https://api-eu.sigencloud.com"
   TIMEZONE: "Europe/Dublin"
-  WEATHER_LATITUDE: "52.638074"
-  WEATHER_LONGITUDE: "-8.677346"
+  WEATHER_LATITUDE: "YOUR_LATITUDE"
+  WEATHER_LONGITUDE: "YOUR_LONGITUDE"
   WEATHER_TIMEZONE: "Europe/Dublin"
   INFLUXDB_URL: "http://influxdb:8086"
   INFLUXDB_ORG: "SigenSolar"
   INFLUXDB_BUCKET: "energy_metrics"
   LOG_LEVEL: "INFO"
+  SLEEP_INTERVAL: "60"

@@ -14,8 +14,10 @@ load_dotenv()
 DEFAULT_WEATHER_LATITUDE = os.getenv("WEATHER_LATITUDE", "52.638074") # Default to your Sigen station's lat
 DEFAULT_WEATHER_LONGITUDE = os.getenv("WEATHER_LONGITUDE", "-8.677346") # Default to your Sigen station's lon
 DEFAULT_WEATHER_TIMEZONE = os.getenv("WEATHER_TIMEZONE", "Europe/Dublin") # Your local timezone
+OPEN_METEO_API_KEY = os.getenv("OPEN_METEO_API_KEY") # Optional API key for higher rate limits
 
-OPEN_METEO_API_URL = "https://api.open-meteo.com/v1/forecast"
+# Use customer API endpoint if API key is available, otherwise use free tier
+OPEN_METEO_API_URL = "https://customer-api.open-meteo.com/v1/forecast" if OPEN_METEO_API_KEY else "https://api.open-meteo.com/v1/forecast"
 USER_AGENT_WEATHER = "PythonWeatherClient/1.0"
 
 def fetch_open_meteo_weather_data(latitude=None, longitude=None, timezone_str=None):
@@ -42,6 +44,10 @@ def fetch_open_meteo_weather_data(latitude=None, longitude=None, timezone_str=No
         "timezone": tz_to_use,
         "forecast_days": 2 # Get today's and tomorrow's hourly forecast
     }
+
+    # Add API key if available
+    if OPEN_METEO_API_KEY:
+        params["apikey"] = OPEN_METEO_API_KEY
     
     headers = {
         "User-Agent": USER_AGENT_WEATHER

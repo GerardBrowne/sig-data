@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import time
 from dotenv import load_dotenv
 from logger import get_logger
 
@@ -28,42 +29,70 @@ def _create_sigen_headers(active_token):
         "auth-client-id": "sigen",
         "origin": "https://app-eu.sigencloud.com",
         "referer": "https://app-eu.sigencloud.com/",
-        "User-Agent": USER_AGENT
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive"
     }
 
-def fetch_sigen_energy_flow(active_token, base_url, station_id):
-    """Fetches real-time energy flow data from the Sigen API."""
+def fetch_sigen_energy_flow(active_token, base_url, station_id, max_retries=2):
+    """Fetches real-time energy flow data from the Sigen API with retry logic."""
     if not active_token:
         logger.warning("No active token for energy flow fetch.")
         return None
 
     endpoint_path = "/device/sigen/station/energyflow"
-    query_params_str = f"?id={station_id}&refreshFlag=true"
+    query_params_str = f"?id={station_id}"
     full_url = f"{base_url}{endpoint_path}{query_params_str}"
     headers = _create_sigen_headers(active_token)
 
-    logger.info(f"Querying Energy Flow: {full_url}")
-    try:
-        response = requests.get(full_url, headers=headers, timeout=15)
-        response.raise_for_status()
-        api_data = response.json()
+    for attempt in range(max_retries + 1):
+        if attempt > 0:
+            wait_time = 5 * attempt  # Wait 5, 10 seconds between retries
+            logger.info(f"Retrying API call in {wait_time} seconds (attempt {attempt + 1}/{max_retries + 1})")
+            time.sleep(wait_time)
 
-        if api_data.get("code") == 0 and api_data.get("msg") == "success":
-            logger.debug("Successfully fetched energy flow data.")
-            return api_data.get("data")
-        else:
-            logger.error(f"Energy Flow API error: Code: {api_data.get('code')}, Message: {api_data.get('msg')}")
-            return None
-    except requests.exceptions.HTTPError as http_err:
-        logger.error(f"HTTP error (Energy Flow): {http_err}")
-        if 'response' in locals() and response is not None:
-            logger.debug(f"Response text: {response.text}")
-    except requests.exceptions.RequestException as req_err:
-        logger.error(f"Request error (Energy Flow): {req_err}")
-    except json.JSONDecodeError:
-        logger.error(f"Failed to decode JSON (Energy Flow). Status: {response.status_code if 'response' in locals() else 'N/A'}")
-        if 'response' in locals() and response is not None:
-            logger.debug(f"Response text: {response.text}")
+        logger.info(f"Querying Energy Flow: {full_url}")
+        try:
+            # Create session with specific settings
+            session = requests.Session()
+            session.headers.update(headers)
+
+            # Force HTTP/1.1 and disable keep-alive to avoid connection issues
+            adapter = requests.adapters.HTTPAdapter()
+            session.mount('https://', adapter)
+
+            response = session.get(full_url, timeout=30, stream=False)
+            response.raise_for_status()
+            api_data = response.json()
+
+            if api_data.get("code") == 0 and api_data.get("msg") == "success":
+                logger.debug("Successfully fetched energy flow data.")
+                return api_data.get("data")
+            else:
+                logger.error(f"Energy Flow API error: Code: {api_data.get('code')}, Message: {api_data.get('msg')}")
+                return None
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTP error (Energy Flow): {http_err}")
+            if 'response' in locals() and response is not None:
+                logger.debug(f"Response text: {response.text}")
+            # Don't retry on 4xx errors except 408
+            if hasattr(http_err, 'response') and http_err.response is not None:
+                if 400 <= http_err.response.status_code < 500 and http_err.response.status_code != 408:
+                    break
+        except requests.exceptions.Timeout as timeout_err:
+            logger.error(f"Timeout error (Energy Flow): {timeout_err}")
+            if attempt == max_retries:
+                logger.error("Max retries reached for timeout. Giving up.")
+        except requests.exceptions.RequestException as req_err:
+            logger.error(f"Request error (Energy Flow): {req_err}")
+            if attempt == max_retries:
+                logger.error("Max retries reached for request error. Giving up.")
+        except json.JSONDecodeError:
+            logger.error(f"Failed to decode JSON (Energy Flow). Status: {response.status_code if 'response' in locals() else 'N/A'}")
+            if 'response' in locals() and response is not None:
+                logger.debug(f"Response text: {response.text}")
+            break  # Don't retry JSON decode errors
     return None
 
 def fetch_sigen_daily_energy_summary(active_token, base_url, station_id, target_date_str_api_format):
